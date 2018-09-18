@@ -18,7 +18,7 @@ class ApiFactory(private val context: Context) {
 
     private fun buildRetrofitInstance() =
             Retrofit.Builder()
-                    .baseUrl("http://api.citybike.es/")
+                    .baseUrl("http://api.citybik.es/")
                     .client(buildClient())
                     .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
                     .build()

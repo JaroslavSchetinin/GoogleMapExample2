@@ -33,7 +33,8 @@ android {
 
 dependencies {
 
-
+    //noinspection GradleCompatible
+    implementation 'com.google.android.gms:play-services-location:15.0.1'
     implementation 'com.android.support:multidex:1.0.3'
     debugImplementation 'com.readystatesoftware.chuck:library:1.1.0'
     releaseImplementation 'com.readystatesoftware.chuck:library-no-op:1.1.0'
