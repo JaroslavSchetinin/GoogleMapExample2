@@ -8,6 +8,7 @@ import retrofit2.Retrofit
 
 
 import okhttp3.Cache
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import java.util.concurrent.TimeUnit
 
 class ApiFactory(private val context: Context) {
@@ -20,6 +21,7 @@ class ApiFactory(private val context: Context) {
             Retrofit.Builder()
                     .baseUrl("http://api.citybik.es/")
                     .client(buildClient())
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
                     .build()
 
