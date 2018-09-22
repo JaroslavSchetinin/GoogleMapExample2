@@ -180,8 +180,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             ActivityCompat.requestPermissions(this, value, LOCATION_REQUEST_CODE)
         }
 
-
-
         map.uiSettings.isMyLocationButtonEnabled = true
 
     }
