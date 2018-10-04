@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <FrameLayout
+        android:id="@+id/bottom_sheet"
+        style="@style/BottomSheet"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        app:behavior_hideable="true"
+        app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/station_id_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/address_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/free_bikes_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+
+            <TextView
+                android:id="@+id/empty_slots_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/distance_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:src="@drawable/google"
+                android:id="@+id/navigate_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@android:color/transparent" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</android.support.design.widget.CoordinatorLayout>
