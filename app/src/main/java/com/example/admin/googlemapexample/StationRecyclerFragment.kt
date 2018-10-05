@@ -9,12 +9,14 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import com.example.admin.googlemapexample.extensions.getDistance
+import com.example.admin.googlemapexample.extensions.getLatLng
 import com.example.admin.googlemapexample.model.Stations
 import com.google.android.gms.maps.model.LatLng
 
-class StationListFragment() : Fragment() {
+class StationListFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.station_recycler_view, container, false)
@@ -22,6 +24,9 @@ class StationListFragment() : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val recyclerView = view.findViewById<RecyclerView>(R.id.recycler_view)
+        var totalStationsText = view.findViewById<TextView>(R.id.total_stations_text_view)
+        var totalBikesText = view.findViewById<TextView>(R.id.total_bikes_text_view)
+        var totalSlotsText = view.findViewById<TextView>(R.id.total_slots_text_view)
         val layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         recyclerView.layoutManager = layoutManager
         val adapter = StationRecyclerAdapter()
@@ -29,9 +34,13 @@ class StationListFragment() : Fragment() {
 
 
         val stations = MainActivity.bikeStations?.second
+        totalStationsText.text = stations?.size.toString()
+        totalBikesText.text = stations?.sumBy{it.free_bikes!!.toInt()}.toString()
+        totalSlotsText.text = stations?.sumBy{it.empty_slots!!.toInt()}.toString()
+
         stations?.forEach { it.distanceToMe = calculateDistance(it) }
-        stations?.let { adapter?.setItems(it.sortedBy { it.distanceToMe }) }
-        adapter?.setOnRecyclerClicked(object : StationRecyclerAdapter.OnRecyclerClicked {
+        stations?.let { adapter.setItems(it.sortedBy { it.distanceToMe }) }
+        adapter.setOnRecyclerClicked(object : StationRecyclerAdapter.OnRecyclerClicked {
             override fun onClick(stations: Stations) {
                 Toast.makeText(context, stations.name, Toast.LENGTH_SHORT).show()
             }
@@ -47,10 +56,5 @@ class StationListFragment() : Fragment() {
 
         return  (stationCoordinates to myLocation).getDistance()
     }
-
-    fun setItems(stations: List<Stations>) {
-
-    }
-
 
 }

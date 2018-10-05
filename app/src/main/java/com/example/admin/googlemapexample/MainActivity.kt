@@ -3,28 +3,17 @@ package com.example.admin.googlemapexample
 import android.content.pm.PackageManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-
 import android.util.Log
-
-import com.example.admin.googlemapexample.extensions.makeToast
 import com.example.admin.googlemapexample.model.Stations
 import com.google.android.gms.maps.*
 import android.Manifest
-import android.app.PendingIntent.getActivity
 import android.content.Intent
 import android.net.Uri
-import android.support.design.internal.BottomNavigationItemView
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.ActivityCompat
-import android.support.v4.app.FragmentTransaction
-import android.view.MenuItem
-import android.view.View
 import android.widget.*
-import com.example.admin.googlemapexample.extensions.getDistance
-import com.example.admin.googlemapexample.extensions.toDate
-import com.example.admin.googlemapexample.extensions.toTimestamp
+import com.example.admin.googlemapexample.extensions.*
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.*
@@ -38,12 +27,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     lateinit var map: GoogleMap
     private lateinit var requestInterface: BikeApi
-    private val LOCATION_REQUEST_CODE = 101
     private val compositeDisposable = CompositeDisposable()
 
     private var bottomSheetFragment = BottomSheetFragment()
     private var mFusedLocationClient: FusedLocationProviderClient? = null
-    lateinit var lastLocation: LatLng
+    private lateinit var lastLocation: LatLng
 
     companion object {
         var bikeStations: Pair<String, List<Stations>>? = null
@@ -51,9 +39,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val timeStampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:SS", Locale.getDefault())
     }
 
-    val SHOW_ALL = 0
-    val SHOW_WITH_BIKES = 1
-    val SHOW_WITH_PARKING_SLOTS = 2
+    private val SHOW_ALL = 0
+    private val SHOW_WITH_BIKES = 1
+    private val SHOW_WITH_PARKING_SLOTS = 2
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,7 +50,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         requestInterface = ApiFactory(this).apiService
 
-        var mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         supportFragmentManager
@@ -144,6 +132,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun getLastLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            map.isMyLocationEnabled = true
             mFusedLocationClient?.lastLocation
                     ?.addOnCompleteListener(this) { task ->
                         if (task.isSuccessful && task.result != null) {
@@ -162,24 +151,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun getMyLocationWithPermission() {
-        val value = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        val permission = ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-        if (permission == PackageManager.PERMISSION_GRANTED) {
-            map.isMyLocationEnabled = true
-            getLastLocation()
-        } else {
-            ActivityCompat.requestPermissions(this, value, LOCATION_REQUEST_CODE)
-        }
-    }
-
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         map.mapType = GoogleMap.MAP_TYPE_NORMAL
         map.uiSettings.isZoomControlsEnabled = true
         map.uiSettings.isMyLocationButtonEnabled = true
-        getMyLocationWithPermission()
+        getLastLocation()
         map.setOnMarkerClickListener { p0 ->
             fillOutTheForm(bikeStations?.second?.firstOrNull { it.name == p0.title })
             bottomSheetFragment.behavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -189,22 +166,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun fillOutTheForm(station: Stations?) {
 
-        val stationIdTextView = findViewById<TextView>(R.id.station_id_text_view)
         val freeBikesTextView = findViewById<TextView>(R.id.free_bikes_text_view)
         val emptySlotsTextView = findViewById<TextView>(R.id.empty_slots_text_view)
         val addressTextView = findViewById<TextView>(R.id.address_text_view)
-        val navigateButton = findViewById<ImageButton>(R.id.navigate_button)
+        val navigateButton = findViewById<TextView>(R.id.navigate_button)
         val distanceTextView = findViewById<TextView>(R.id.distance_text_view)
 
-        val stationId = "Station ID : ${station?.extra?.uid}"
-        val freeBikes = "Free bikes amount : ${station?.free_bikes}"
-        val emptySlots = "Empty slots amount : ${station?.empty_slots}"
-        val stationAddress = "Address : ${station?.name}"
+        val freeBikes = " : ${station?.free_bikes}"
+        val emptySlots = " : ${station?.empty_slots}"
+        val stationAddress = "${station?.name?.replace("(PK)", "")?.toLowerCase()?.split(' ', '/')?.joinToString(" ") { it.capitalize() }}"
+        val distance = " ${(lastLocation to (station?.getLatLng() ?: lastLocation)).getDistance()} m."
 
-        stationIdTextView.text = stationId
         freeBikesTextView.text = freeBikes
         emptySlotsTextView.text = emptySlots
         addressTextView.text = stationAddress
+        distanceTextView.text = distance
+        navigateButton.text = " Go Here"
 
         navigateButton.setOnClickListener {
             val gmmIntentUri = Uri.parse("google.navigation:q=${station?.latitude}, ${station?.longitude}")
@@ -265,9 +242,4 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun getDifferenceBetweenDates(timeNow: Date, timestampOfLastCall: Date): Int = timeNow.time.toInt() - timestampOfLastCall.time.toInt()
-
-
 }
-
-fun Stations.getLatLng(): LatLng = LatLng(this.latitude?.toDouble()
-        ?: 0.0, this.longitude?.toDouble() ?: 0.0)

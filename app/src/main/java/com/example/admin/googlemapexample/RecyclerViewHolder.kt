@@ -2,20 +2,30 @@ package com.example.admin.googlemapexample
 
 import android.support.v7.widget.RecyclerView
 import android.view.View
+import android.widget.ProgressBar
 import android.widget.TextView
-import com.example.admin.googlemapexample.extensions.getDistance
+import com.budiyev.android.circularprogressbar.CircularProgressBar
 import com.example.admin.googlemapexample.model.Stations
-import com.google.android.gms.maps.model.LatLng
 
 class RecyclerViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
     private val stationTitle = itemView.findViewById<TextView>(R.id.station_title_text_view)
     private val distanceToMeText = itemView.findViewById<TextView>(R.id.station_distance_text_view)
+    private val leftProgresBar = itemView.findViewById<CircularProgressBar>(R.id.progress_bar_left)
+    private val stationInfoText = itemView.findViewById<TextView>(R.id.station_info_text_view)
+    private val totalStationsText = itemView.findViewById<TextView>(R.id.total_stations_text_view)
+    private val totalBikesText = itemView.findViewById<TextView>(R.id.total_bikes_text_view)
+    private val totalSlotsText = itemView.findViewById<TextView>(R.id.total_slots_text_view)
+
 
     fun bind(station: Stations) {
-        val distanseString = "${station.distanceToMe} meters"
+        val stationInfo = "${station.free_bikes} bikes, ${station.empty_slots} parking slots."
+        val distanceString = "${station.distanceToMe} meters"
+        val bikesSlotsSum = station.free_bikes?.toFloat()?.let { station.empty_slots?.toFloat()?.plus(it) }
         stationTitle.text = station.name
-        distanceToMeText.text = distanseString
+        distanceToMeText.text = distanceString
+        leftProgresBar.progress = 100*(station.free_bikes?.toFloat()?.div(bikesSlotsSum!!) ?: 0F)
+        stationInfoText.text = stationInfo
     }
 
 

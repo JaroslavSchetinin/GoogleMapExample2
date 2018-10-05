@@ -29,20 +29,19 @@ class BottomSheetFragment : Fragment() {
             }
 
             override fun onStateChanged(bottomSheet: View, newState: Int) {
-                when (newState) {
-//                    BottomSheetBehavior.STATE_HIDDEN -> {
-//                    }
-//                    BottomSheetBehavior.STATE_EXPANDED ->
-//                        bottomSheet.tv.text = bikeStations.toString()
-//
-                    BottomSheetBehavior.STATE_COLLAPSED ->
-                        bottomSheet.station_id_text_view.text = "Choose Station"
-//
-//                    BottomSheetBehavior.STATE_DRAGGING -> {
-//                    }
-//                    BottomSheetBehavior.STATE_SETTLING -> {
-//                    }
-                }
+//                when (newState) {
+////                    BottomSheetBehavior.STATE_HIDDEN -> {
+////                    }
+////                    BottomSheetBehavior.STATE_EXPANDED ->
+////                        bottomSheet.tv.text = bikeStations.toString()
+////
+////                    BottomSheetBehavior.STATE_COLLAPSED ->
+////
+////                    BottomSheetBehavior.STATE_DRAGGING -> {
+////                    }
+////                    BottomSheetBehavior.STATE_SETTLING -> {
+////                    }
+//                }
             }
         })
 
