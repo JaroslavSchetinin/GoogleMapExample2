@@ -13,7 +13,7 @@ import android.widget.TextView
 import android.widget.Toast
 import com.example.admin.googlemapexample.extensions.getDistance
 import com.example.admin.googlemapexample.extensions.getLatLng
-import com.example.admin.googlemapexample.model.Stations
+import com.example.admin.googlemapexample.model.Station
 import com.google.android.gms.maps.model.LatLng
 
 class StationListFragment : Fragment() {
@@ -24,9 +24,9 @@ class StationListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val recyclerView = view.findViewById<RecyclerView>(R.id.recycler_view)
-        var totalStationsText = view.findViewById<TextView>(R.id.total_stations_text_view)
-        var totalBikesText = view.findViewById<TextView>(R.id.total_bikes_text_view)
-        var totalSlotsText = view.findViewById<TextView>(R.id.total_slots_text_view)
+        val totalStationsText = view.findViewById<TextView>(R.id.total_stations_text_view)
+        val totalBikesText = view.findViewById<TextView>(R.id.total_bikes_text_view)
+        val totalSlotsText = view.findViewById<TextView>(R.id.total_slots_text_view)
         val layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         recyclerView.layoutManager = layoutManager
         val adapter = StationRecyclerAdapter()
@@ -41,13 +41,13 @@ class StationListFragment : Fragment() {
         stations?.forEach { it.distanceToMe = calculateDistance(it) }
         stations?.let { adapter.setItems(it.sortedBy { it.distanceToMe }) }
         adapter.setOnRecyclerClicked(object : StationRecyclerAdapter.OnRecyclerClicked {
-            override fun onClick(stations: Stations) {
-                Toast.makeText(context, stations.name, Toast.LENGTH_SHORT).show()
+            override fun onClick(station: Station) {
+                Toast.makeText(context, station.name, Toast.LENGTH_SHORT).show()
             }
         })
     }
 
-    private fun calculateDistance(it: Stations): Int {
+    private fun calculateDistance(it: Station): Int {
         val stationCoordinates = it.getLatLng()
         val sharedPreferences = context?.getSharedPreferences("AA", AppCompatActivity.MODE_PRIVATE)
         val myLocationString = sharedPreferences!!.getString(MainActivity.MY_LAST_LOCATION, "")

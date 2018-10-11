@@ -4,15 +4,20 @@ import android.content.pm.PackageManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import com.example.admin.googlemapexample.model.Stations
+import com.example.admin.googlemapexample.model.Station
 import com.google.android.gms.maps.*
 import android.Manifest
+import android.arch.persistence.room.rxjava2.R.id.async
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.ActivityCompat
 import android.widget.*
+import com.example.admin.googlemapexample.MainActivity.Companion.bikeStations
+import com.example.admin.googlemapexample.R.id.map
+import com.example.admin.googlemapexample.db.AppDatabase
 import com.example.admin.googlemapexample.extensions.*
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -20,6 +25,8 @@ import com.google.android.gms.maps.model.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import okhttp3.internal.Internal.instance
+import org.jetbrains.anko.doAsync
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -31,10 +38,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private var bottomSheetFragment = BottomSheetFragment()
     private var mFusedLocationClient: FusedLocationProviderClient? = null
-    private lateinit var lastLocation: LatLng
+    private var lastLocation: LatLng? = null
+    private var dbinstance: AppDatabase? = null
 
     companion object {
-        var bikeStations: Pair<String, List<Stations>>? = null
+        var bikeStations: Pair<String, List<Station>>? = null
         const val MY_LAST_LOCATION = "my_location"
         val timeStampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:SS", Locale.getDefault())
     }
@@ -43,9 +51,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private val SHOW_WITH_BIKES = 1
     private val SHOW_WITH_PARKING_SLOTS = 2
 
+    private var sharedPreferences: SharedPreferences? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        sharedPreferences = getSharedPreferences("AA", MODE_PRIVATE)
+        sharedPreferences?.edit()?.putString(MY_LAST_LOCATION, "")?.apply()
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         requestInterface = ApiFactory(this).apiService
@@ -58,7 +70,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 .replace(R.id.bottom_sheet_fragment_container, bottomSheetFragment)
                 .commit()
 
+        dbinstance = AppDatabase.getInstance(applicationContext)
+
         requestStations(SHOW_ALL)
+
         setupSearchButtons()
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
@@ -78,6 +93,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
             true
         }
+
+        showStationsFromDatabase()
+    }
+
+    private fun showStationsFromDatabase() {
+        if (dbinstance != null) {
+            with(dbinstance as AppDatabase) {
+                stationDao().getAllStations()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnSuccess {
+                            showAllStations(it)
+                        }
+                        .doOnError {
+                            it.message?.makeToast(this@MainActivity)
+                        }
+                        .subscribe()
+            }
+        }
     }
 
     private fun setupSearchButtons() {
@@ -87,7 +121,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             if (differenceInMinutes > 1)
                 requestStations(SHOW_WITH_BIKES)
             else
-                showStationsWithBikes(bikeStations!!.second)
+                bikeStations?.second?.let { it1 -> showStationsWithBikes(it1) }
         }
 
         val lookingForParking = findViewById<Button>(R.id.looking_for_a_parking)
@@ -97,7 +131,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             if (differenceInMinutes > 1)
                 requestStations(SHOW_WITH_PARKING_SLOTS)
             else
-                showStationsWithParking(bikeStations!!.second)
+                bikeStations?.second?.let { it1 -> showStationsWithParking(it1) }
         }
 
         val showAllStations = findViewById<Button>(R.id.show_all_stations)
@@ -107,7 +141,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             if (differenceInMinutes > 1)
                 requestStations(SHOW_ALL)
             else
-                showAllStations(bikeStations!!.second)
+                bikeStations?.second?.let { it1 -> showAllStations(it1) }
         }
     }
 
@@ -117,7 +151,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onDestroy()
     }
 
-    private fun chooseIcon(it: Stations): Int {
+    private fun chooseIcon(it: Station): Int {
         val total = it.empty_slots!!.toInt() + it.free_bikes!!.toInt()
         val coefOfFree: Double = it.free_bikes!!.toDouble().div(total)
 
@@ -137,12 +171,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     ?.addOnCompleteListener(this) { task ->
                         if (task.isSuccessful && task.result != null) {
                             lastLocation = LatLng(task.result.latitude, task.result.longitude)
-                            val sharedPreferences = getSharedPreferences("AA", MODE_PRIVATE).edit()
-                            sharedPreferences.putString(MY_LAST_LOCATION, "${task.result.latitude}, ${task.result.longitude}").apply()
+                            sharedPreferences?.edit()?.putString(MY_LAST_LOCATION, "${task.result.latitude}, ${task.result.longitude}")?.apply()
 
-                            map.addMarker(MarkerOptions().position(lastLocation)
+                            lastLocation?.let{map.addMarker(MarkerOptions().position(it)
                                     .title("My Position")
-                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)))
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)))}
                             map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(task.result!!.latitude, task.result!!.longitude), 15f))
                         } else {
                             Log.w("TAG", "getLastLocation:exception", task.exception)
@@ -164,7 +197,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun fillOutTheForm(station: Stations?) {
+    private fun fillOutTheForm(station: Station?) {
 
         val freeBikesTextView = findViewById<TextView>(R.id.free_bikes_text_view)
         val emptySlotsTextView = findViewById<TextView>(R.id.empty_slots_text_view)
@@ -175,7 +208,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val freeBikes = " : ${station?.free_bikes}"
         val emptySlots = " : ${station?.empty_slots}"
         val stationAddress = "${station?.name?.replace("(PK)", "")?.toLowerCase()?.split(' ', '/')?.joinToString(" ") { it.capitalize() }}"
-        val distance = " ${(lastLocation to (station?.getLatLng() ?: lastLocation)).getDistance()} m."
+        val distance = if (lastLocation != null) {
+            "${((lastLocation ?: LatLng(0.0, 0.0)) to (station?.getLatLng() ?: LatLng(0.0, 0.0))).getDistance()} m."
+        } else ""
 
         freeBikesTextView.text = freeBikes
         emptySlotsTextView.text = emptySlots
@@ -197,17 +232,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 .doOnSuccess { response ->
                     bikeStations = Calendar.getInstance().time.toTimestamp() to (response.network?.stations?.toList()
                             ?: listOf())
-                    val bikesStationSecond = bikeStations!!.second
+                    val bikesStationSecond = bikeStations?.second
+                    doAsync { dbinstance?.stationDao()?.insertAllStations(bikesStationSecond) }
                     when (type) {
-                        SHOW_WITH_BIKES -> showStationsWithBikes(bikesStationSecond)
-                        SHOW_WITH_PARKING_SLOTS -> showStationsWithParking(bikesStationSecond)
-                        else -> showAllStations(bikesStationSecond)
+                        SHOW_WITH_BIKES -> bikesStationSecond?.let { showStationsWithBikes(it) }
+                        SHOW_WITH_PARKING_SLOTS -> bikesStationSecond?.let { showStationsWithParking(it) }
+                        else -> bikesStationSecond?.let { showAllStations(it) }
                     }
                 }
                 .subscribe())
     }
 
-    private fun showStationsWithParking(second: List<Stations>) {
+    private fun showStationsWithParking(second: List<Station>) {
         map.clear()
         second.filter { it.empty_slots!!.toInt() > 0 }.forEach {
             map.addMarker(MarkerOptions().position(it.getLatLng()).title(it.name)
@@ -215,7 +251,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun showStationsWithBikes(second: List<Stations>) {
+    private fun showStationsWithBikes(second: List<Station>) {
         map.clear()
         second.filter { it.free_bikes!!.toInt() > 0 }.forEach {
             map.addMarker(MarkerOptions().position(it.getLatLng()).title(it.name)
@@ -223,7 +259,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun showAllStations(second: List<Stations>) {
+    private fun showAllStations(second: List<Station>) {
         "count: ${second.size}".makeToast(this@MainActivity)
         second.forEach {
             map.addMarker(MarkerOptions().position(it.getLatLng()).title(it.name)

@@ -33,7 +33,6 @@ class ApiFactory(private val context: Context) {
         writeTimeout(1, TimeUnit.MINUTES)
         if (BuildConfig.DEBUG) {
             addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
-            //StethoInterceptorDebugOnly.configureInterceptor(this)
         }
     }.build()
 }

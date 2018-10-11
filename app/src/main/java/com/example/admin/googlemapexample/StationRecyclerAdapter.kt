@@ -4,13 +4,13 @@ package com.example.admin.googlemapexample
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import com.example.admin.googlemapexample.model.Stations
+import com.example.admin.googlemapexample.model.Station
 
 class StationRecyclerAdapter : RecyclerView.Adapter<RecyclerViewHolder>() {
 
-    private var items: MutableList<Stations> = mutableListOf()
+    private var items: MutableList<Station> = mutableListOf()
 
-    fun setItems(newItems: List<Stations>){
+    fun setItems(newItems: List<Station>){
         items.clear()
         items.addAll(newItems)
         notifyDataSetChanged()
@@ -41,7 +41,7 @@ class StationRecyclerAdapter : RecyclerView.Adapter<RecyclerViewHolder>() {
     }
 
     interface OnRecyclerClicked{
-        fun onClick(station: Stations)
+        fun onClick(station: Station)
     }
 
 

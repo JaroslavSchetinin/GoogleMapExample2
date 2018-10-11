@@ -5,7 +5,7 @@ import android.location.Location
 class Network {
     var id: String? = null
 
-    var stations: Array<Stations>? = null
+    var stations: Array<Station>? = null
 
     var location: Location? = null
 
