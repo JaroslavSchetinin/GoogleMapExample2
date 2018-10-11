@@ -173,9 +173,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                             lastLocation = LatLng(task.result.latitude, task.result.longitude)
                             sharedPreferences?.edit()?.putString(MY_LAST_LOCATION, "${task.result.latitude}, ${task.result.longitude}")?.apply()
 
-                            lastLocation?.let{map.addMarker(MarkerOptions().position(it)
-                                    .title("My Position")
-                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)))}
+                            lastLocation?.let {
+                                map.addMarker(MarkerOptions().position(it)
+                                        .title("My Position")
+                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)))
+                            }
                             map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(task.result!!.latitude, task.result!!.longitude), 15f))
                         } else {
                             Log.w("TAG", "getLastLocation:exception", task.exception)
@@ -209,7 +211,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val emptySlots = " : ${station?.empty_slots}"
         val stationAddress = "${station?.name?.replace("(PK)", "")?.toLowerCase()?.split(' ', '/')?.joinToString(" ") { it.capitalize() }}"
         val distance = if (lastLocation != null) {
-            "${((lastLocation ?: LatLng(0.0, 0.0)) to (station?.getLatLng() ?: LatLng(0.0, 0.0))).getDistance()} m."
+            "${((lastLocation ?: LatLng(0.0, 0.0)) to (station?.getLatLng()
+                    ?: LatLng(0.0, 0.0))).getDistance()} m."
         } else ""
 
         freeBikesTextView.text = freeBikes
