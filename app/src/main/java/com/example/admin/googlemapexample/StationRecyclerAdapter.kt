@@ -10,7 +10,7 @@ class StationRecyclerAdapter : RecyclerView.Adapter<RecyclerViewHolder>() {
 
     private var items: MutableList<Station> = mutableListOf()
 
-    fun setItems(newItems: List<Station>){
+    fun setItems(newItems: List<Station>) {
         items.clear()
         items.addAll(newItems)
         notifyDataSetChanged()
@@ -20,7 +20,6 @@ class StationRecyclerAdapter : RecyclerView.Adapter<RecyclerViewHolder>() {
         val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_station_recycler, parent, false)
         return RecyclerViewHolder(view)
-
     }
 
     override fun getItemCount(): Int = items.size
@@ -36,15 +35,11 @@ class StationRecyclerAdapter : RecyclerView.Adapter<RecyclerViewHolder>() {
 
     private var onRecyclerClicked: OnRecyclerClicked? = null
 
-    fun setOnRecyclerClicked(onRecyclerClicked: OnRecyclerClicked?){
+    fun setOnRecyclerClicked(onRecyclerClicked: OnRecyclerClicked?) {
         this.onRecyclerClicked = onRecyclerClicked
     }
 
-    interface OnRecyclerClicked{
+    interface OnRecyclerClicked {
         fun onClick(station: Station)
     }
-
-
-
-
 }

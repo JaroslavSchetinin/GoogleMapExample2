@@ -3,11 +3,9 @@ package com.example.admin.googlemapexample
 import android.content.pm.PackageManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import com.example.admin.googlemapexample.model.Station
 import com.google.android.gms.maps.*
 import android.Manifest
-import android.arch.persistence.room.rxjava2.R.id.async
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
@@ -15,8 +13,6 @@ import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.ActivityCompat
 import android.widget.*
-import com.example.admin.googlemapexample.MainActivity.Companion.bikeStations
-import com.example.admin.googlemapexample.R.id.map
 import com.example.admin.googlemapexample.db.AppDatabase
 import com.example.admin.googlemapexample.extensions.*
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -25,14 +21,13 @@ import com.google.android.gms.maps.model.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import okhttp3.internal.Internal.instance
 import org.jetbrains.anko.doAsync
 import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    lateinit var map: GoogleMap
+
     private lateinit var requestInterface: BikeApi
     private val compositeDisposable = CompositeDisposable()
 
@@ -42,6 +37,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private var dbinstance: AppDatabase? = null
 
     companion object {
+        lateinit var map: GoogleMap
+        private const val LOCATION_PERMISSION_REQUEST_CODE = 1
         var bikeStations: Pair<String, List<Station>>? = null
         const val MY_LAST_LOCATION = "my_location"
         val timeStampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:SS", Locale.getDefault())
@@ -77,13 +74,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         setupSearchButtons()
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-        val stationListFragment = StationListFragment()
 
         bottomNavigationView.setOnNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.action_list ->
                     supportFragmentManager.beginTransaction()
-                            .replace(R.id.recycler_view_fragment_container, stationListFragment)
+                            .replace(R.id.recycler_view_fragment_container, StationListFragment())
                             .addToBackStack(null)
                             .commit()
                 R.id.action_map -> {
@@ -152,8 +148,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun chooseIcon(it: Station): Int {
-        val total = it.empty_slots!!.toInt() + it.free_bikes!!.toInt()
-        val coefOfFree: Double = it.free_bikes!!.toDouble().div(total)
+        val total = it.free_bikes?.toInt()?.let { it1 -> it.empty_slots?.toInt()?.plus(it1) }
+        val coefOfFree: Double = total?.let { it1 -> it.free_bikes?.toDouble()?.div(it1) } ?: 0.0
 
         return when {
             coefOfFree == 0.0 -> R.drawable.loc_0
@@ -165,7 +161,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun getLastLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+        } else {
             map.isMyLocationEnabled = true
             mFusedLocationClient?.lastLocation
                     ?.addOnCompleteListener(this) { task ->
@@ -178,11 +177,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                                         .title("My Position")
                                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)))
                             }
-                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(task.result!!.latitude, task.result!!.longitude), 15f))
-                        } else {
-                            Log.w("TAG", "getLastLocation:exception", task.exception)
+                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(task.result?.latitude?.let { LatLng(it, task.result.longitude) }, 15f))
                         }
                     }
+
         }
     }
 
@@ -248,7 +246,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun showStationsWithParking(second: List<Station>) {
         map.clear()
-        second.filter { it.empty_slots!!.toInt() > 0 }.forEach {
+        second.filter { it.empty_slots?.toInt() ?: 0 > 0 }.forEach {
             map.addMarker(MarkerOptions().position(it.getLatLng()).title(it.name)
                     .icon(BitmapDescriptorFactory.fromResource(chooseIcon(it))))
         }
@@ -256,7 +254,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun showStationsWithBikes(second: List<Station>) {
         map.clear()
-        second.filter { it.free_bikes!!.toInt() > 0 }.forEach {
+        second.filter { it.free_bikes?.toInt() ?: 0 > 0 }.forEach {
             map.addMarker(MarkerOptions().position(it.getLatLng()).title(it.name)
                     .icon(BitmapDescriptorFactory.fromResource(chooseIcon(it))))
         }
@@ -271,12 +269,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun getDifferenceInMinutes(): Int {
-        return if (bikeStations?.first!!.isEmpty() || bikeStations?.first == null) {
+        return if (bikeStations?.first?.isEmpty() == true || bikeStations?.first == null) {
             0
         } else {
             val timeNow = Calendar.getInstance().time
-            val timestampOfLastCall = bikeStations!!.first.toDate()
-            getDifferenceBetweenDates(timeNow, timestampOfLastCall) / 60000
+            val timestampOfLastCall = bikeStations?.first?.toDate()
+            return if (timestampOfLastCall != null) {
+                getDifferenceBetweenDates(timeNow, timestampOfLastCall) / 60000
+            } else 0
         }
     }
 

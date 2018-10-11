@@ -82,5 +82,4 @@
         app:itemTextColor="@color/navigation_bar_selector"
         app:menu="@menu/menu_bottom_navigation" />
 
-
 </RelativeLayout>
