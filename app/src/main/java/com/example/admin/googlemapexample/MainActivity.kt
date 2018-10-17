@@ -6,6 +6,7 @@ import android.os.Bundle
 import com.example.admin.googlemapexample.model.Station
 import com.google.android.gms.maps.*
 import android.Manifest
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
@@ -13,28 +14,26 @@ import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.ActivityCompat
 import android.widget.*
-import com.example.admin.googlemapexample.db.AppDatabase
 import com.example.admin.googlemapexample.extensions.*
+import com.example.admin.googlemapexample.fragment.StationListFragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.*
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import org.jetbrains.anko.doAsync
 import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
-
-
     private lateinit var requestInterface: BikeApi
     private val compositeDisposable = CompositeDisposable()
-
     private var bottomSheetFragment = BottomSheetFragment()
     private var mFusedLocationClient: FusedLocationProviderClient? = null
     private var lastLocation: LatLng? = null
-    private var dbinstance: AppDatabase? = null
+
+    private val viewModel: StationListViewModel by lazy {
+        ViewModelProviders.of(this).get(StationListViewModel::class.java)
+    }
 
     companion object {
         lateinit var map: GoogleMap
@@ -67,8 +66,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 .replace(R.id.bottom_sheet_fragment_container, bottomSheetFragment)
                 .commit()
 
-        dbinstance = AppDatabase.getInstance(applicationContext)
-
         requestStations(SHOW_ALL)
 
         setupSearchButtons()
@@ -94,20 +91,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun showStationsFromDatabase() {
-        if (dbinstance != null) {
-            with(dbinstance as AppDatabase) {
-                stationDao().getAllStations()
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .doOnSuccess {
-                            showAllStations(it)
-                        }
-                        .doOnError {
-                            it.message?.makeToast(this@MainActivity)
-                        }
-                        .subscribe()
-            }
-        }
+        viewModel.getStationsFromDatabase()
+                ?.doOnSuccess { showAllStations(it) }
+                ?.doOnError { it.message?.makeToast(this@MainActivity) }
+                ?.subscribe()
     }
 
     private fun setupSearchButtons() {
@@ -227,14 +214,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun requestStations(type: Int) {
-        compositeDisposable.add(requestInterface.getStations()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+        compositeDisposable.add(viewModel.getStationsFromWeb()
                 .doOnSuccess { response ->
                     bikeStations = Calendar.getInstance().time.toTimestamp() to (response.network?.stations?.toList()
                             ?: listOf())
                     val bikesStationSecond = bikeStations?.second
-                    doAsync { dbinstance?.stationDao()?.insertAllStations(bikesStationSecond) }
+                    doAsync { viewModel.stationsInsertion(bikesStationSecond) }
                     when (type) {
                         SHOW_WITH_BIKES -> bikesStationSecond?.let { showStationsWithBikes(it) }
                         SHOW_WITH_PARKING_SLOTS -> bikesStationSecond?.let { showStationsWithParking(it) }

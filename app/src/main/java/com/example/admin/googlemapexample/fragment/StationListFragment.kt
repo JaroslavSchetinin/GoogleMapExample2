@@ -1,7 +1,7 @@
-package com.example.admin.googlemapexample
+package com.example.admin.googlemapexample.fragment
 
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
@@ -12,6 +12,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import com.example.admin.googlemapexample.MainActivity
+import com.example.admin.googlemapexample.R
+import com.example.admin.googlemapexample.StationListViewModel
+import com.example.admin.googlemapexample.StationRecyclerAdapter
 import com.example.admin.googlemapexample.extensions.getDistance
 import com.example.admin.googlemapexample.extensions.getLatLng
 import com.example.admin.googlemapexample.model.Station
@@ -42,8 +46,13 @@ class StationListFragment : Fragment() {
         totalBikesText.text = totalBikes
         totalSlotsText.text = totalSlots
 
-        stations?.forEach { it.distanceToMe = calculateDistance(it) }
-        stations?.let { adapter.setItems(it.sortedBy { it.distanceToMe }) }
+        val viewModel: StationListViewModel by lazy {
+            ViewModelProviders.of(activity!!).get(StationListViewModel::class.java)
+        }
+
+        viewModel.items?.forEach { it.distanceToMe = calculateDistance(it) }
+        viewModel.items?.let { adapter.setItems(it.sortedBy { it.distanceToMe }) }
+
         adapter.setOnRecyclerClicked(object : StationRecyclerAdapter.OnRecyclerClicked {
             override fun onClick(station: Station) {
                 Toast.makeText(context, station.name, Toast.LENGTH_SHORT).show()
