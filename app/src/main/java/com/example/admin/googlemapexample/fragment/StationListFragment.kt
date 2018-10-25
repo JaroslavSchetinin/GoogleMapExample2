@@ -58,7 +58,7 @@ class StationListFragment : Fragment() {
             override fun onClick(station: Station) {
                 Toast.makeText(context, station.name, Toast.LENGTH_SHORT).show()
                 fragmentManager?.popBackStack()
-                MainActivity.map.animateCamera(CameraUpdateFactory.newLatLngZoom(station.latitude?.let { LatLng(it.toDouble(), station.longitude?.toDouble() ?: 0.0) }, 18f))
+                MainActivity.map.animateCamera(CameraUpdateFactory.newLatLngZoom(station.latitude?.let { LatLng(it.toDouble(), station.longitude?.toDouble() ?: 0.0) }, 18f))  //?
             }
         })
     }

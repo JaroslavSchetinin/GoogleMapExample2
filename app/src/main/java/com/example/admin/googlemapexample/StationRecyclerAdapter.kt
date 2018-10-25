@@ -5,11 +5,12 @@ import android.support.design.widget.BottomSheetBehavior
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import com.example.admin.googlemapexample.fragment.BottomSheetFragment
 import com.example.admin.googlemapexample.model.Station
 
 class StationRecyclerAdapter : RecyclerView.Adapter<RecyclerViewHolder>() {
 
-    private var items: MutableList<Station> = mutableListOf()
+    private val items: MutableList<Station> = mutableListOf()
 
     fun setItems(newItems: List<Station>) {
         items.clear()

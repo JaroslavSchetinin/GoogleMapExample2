@@ -1,4 +1,4 @@
-package com.example.admin.googlemapexample
+package com.example.admin.googlemapexample.fragment
 
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
@@ -8,14 +8,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import com.example.admin.googlemapexample.R.id.bottom_sheet
+import com.example.admin.googlemapexample.R
+import com.example.admin.googlemapexample.fragment.BottomSheetFragment.Companion.behavior
 import kotlinx.android.synthetic.main.bottom_sheet_fragment.*
-import kotlinx.android.synthetic.main.bottom_sheet_fragment.view.*
 
 class BottomSheetFragment : Fragment() {
 
     companion object {
-        lateinit var behavior: BottomSheetBehavior<FrameLayout>
+        lateinit var behavior: BottomSheetBehavior<FrameLayout> //?
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -32,19 +32,6 @@ class BottomSheetFragment : Fragment() {
             }
 
             override fun onStateChanged(bottomSheet: View, newState: Int) {
-//                when (newState) {
-////                    BottomSheetBehavior.STATE_HIDDEN -> {
-////                    }
-////                    BottomSheetBehavior.STATE_EXPANDED ->
-////                        bottomSheet.tv.text = bikeStations.toString()
-////
-////                    BottomSheetBehavior.STATE_COLLAPSED ->
-////
-////                    BottomSheetBehavior.STATE_DRAGGING -> {
-////                    }
-////                    BottomSheetBehavior.STATE_SETTLING -> {
-////                    }
-//                }
             }
         })
 

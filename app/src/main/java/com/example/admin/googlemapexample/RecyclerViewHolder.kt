@@ -10,7 +10,7 @@ class RecyclerViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
     private val stationTitle = itemView.findViewById<TextView>(R.id.station_title_text_view)
     private val distanceToMeText = itemView.findViewById<TextView>(R.id.station_distance_text_view)
-    private val leftProgresBar = itemView.findViewById<CircularProgressBar>(R.id.progress_bar_left)
+    private val leftProgressBar = itemView.findViewById<CircularProgressBar>(R.id.progress_bar_left)
     private val stationInfoText = itemView.findViewById<TextView>(R.id.station_info_text_view)
 
 
@@ -20,7 +20,7 @@ class RecyclerViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val bikesSlotsSum = station.free_bikes?.toFloat()?.let { station.empty_slots?.toFloat()?.plus(it) }
         stationTitle.text = station.name
         distanceToMeText.text = distanceString
-        leftProgresBar.progress = 100*(station.free_bikes?.toFloat()?.div(bikesSlotsSum!!) ?: 0F)
+        leftProgressBar.progress = 100*(station.free_bikes?.toFloat()?.div(bikesSlotsSum!!) ?: 0F)
         stationInfoText.text = stationInfo
     }
 

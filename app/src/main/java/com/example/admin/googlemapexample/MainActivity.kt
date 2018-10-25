@@ -4,7 +4,6 @@ import android.content.pm.PackageManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import com.example.admin.googlemapexample.model.Station
-import com.google.android.gms.maps.*
 import android.Manifest
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
@@ -13,32 +12,45 @@ import android.net.Uri
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.ActivityCompat
-import android.widget.*
+import android.widget.Button
+import android.widget.TextView
 import com.example.admin.googlemapexample.extensions.*
+import com.example.admin.googlemapexample.fragment.BottomSheetFragment
 import com.example.admin.googlemapexample.fragment.StationListFragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.model.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import io.reactivex.disposables.CompositeDisposable
 import org.jetbrains.anko.doAsync
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private val compositeDisposable = CompositeDisposable()
     private var mFusedLocationClient: FusedLocationProviderClient? = null
     private var lastLocation: LatLng? = null
+    private var bikeStations: Pair<String, List<Station>>? = null
+    private val emptyMarker = 0.0
+    private val quarterMarker = 0.25
+    private val halfMarker = 0.5
+    private val threeQuartersMarker = 0.75
 
     private val viewModel: StationListViewModel by lazy {
         ViewModelProviders.of(this).get(StationListViewModel::class.java)
     }
 
     companion object {
-        lateinit var map: GoogleMap
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
-        var bikeStations: Pair<String, List<Station>>? = null
         const val MY_LAST_LOCATION = "my_location"
         val timeStampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:SS", Locale.getDefault())
+        lateinit var map: GoogleMap
     }
 
     private val SHOW_ALL = 0
@@ -78,8 +90,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                             .addToBackStack(null)
                             .commit()
                 R.id.action_map -> {
-                    if (supportFragmentManager.backStackEntryCount > 0)
+                    if (supportFragmentManager.backStackEntryCount > 0){
                         supportFragmentManager.popBackStack()
+                    }
                 }
             }
             true
@@ -99,30 +112,33 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val lookingForBikeButton = findViewById<Button>(R.id.looking_for_a_bike)
         lookingForBikeButton.setOnClickListener {
             val differenceInMinutes = getDifferenceInMinutes()
-            if (differenceInMinutes > 1)
+            if (differenceInMinutes > 1) {
                 requestStations(SHOW_WITH_BIKES)
-            else
+            } else {
                 bikeStations?.second?.let { it1 -> showStationsWithBikes(it1) }
+            }
         }
 
         val lookingForParking = findViewById<Button>(R.id.looking_for_a_parking)
         lookingForParking.setOnClickListener {
             val differenceInMinutes = getDifferenceInMinutes()
 
-            if (differenceInMinutes > 1)
+            if (differenceInMinutes > 1) {
                 requestStations(SHOW_WITH_PARKING_SLOTS)
-            else
+            } else {
                 bikeStations?.second?.let { it1 -> showStationsWithParking(it1) }
+            }
         }
 
         val showAllStations = findViewById<Button>(R.id.show_all_stations)
         showAllStations.setOnClickListener {
             map.clear()
             val differenceInMinutes = getDifferenceInMinutes()
-            if (differenceInMinutes > 1)
+            if (differenceInMinutes > 1) {
                 requestStations(SHOW_ALL)
-            else
+            } else {
                 bikeStations?.second?.let { it1 -> showAllStations(it1) }
+            }
         }
     }
 
@@ -137,10 +153,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         val coefOfFree: Double = total?.let { it1 -> it.free_bikes?.toDouble()?.div(it1) } ?: 0.0
 
         return when {
-            coefOfFree == 0.0 -> R.drawable.loc_0
-            0.0 < coefOfFree && coefOfFree <= 0.25 -> R.drawable.loc_25
-            0.25 < coefOfFree && coefOfFree <= 0.5 -> R.drawable.loc_50
-            0.5 < coefOfFree && coefOfFree <= 0.75 -> R.drawable.loc_75
+            coefOfFree == emptyMarker -> R.drawable.loc_0
+            emptyMarker < coefOfFree && coefOfFree <= quarterMarker -> R.drawable.loc_25
+            quarterMarker < coefOfFree && coefOfFree <= halfMarker -> R.drawable.loc_50
+            halfMarker < coefOfFree && coefOfFree <= threeQuartersMarker -> R.drawable.loc_75
             else -> R.drawable.loc_100
         }
     }
@@ -181,6 +197,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             false
         }
     }
+
 
     private fun fillOutTheForm(station: Station?) {
 
