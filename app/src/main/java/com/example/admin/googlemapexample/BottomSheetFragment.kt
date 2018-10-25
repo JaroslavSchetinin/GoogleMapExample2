@@ -8,12 +8,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import com.example.admin.googlemapexample.R.id.bottom_sheet
 import kotlinx.android.synthetic.main.bottom_sheet_fragment.*
 import kotlinx.android.synthetic.main.bottom_sheet_fragment.view.*
 
 class BottomSheetFragment : Fragment() {
 
-    lateinit var behavior: BottomSheetBehavior<FrameLayout>
+    companion object {
+        lateinit var behavior: BottomSheetBehavior<FrameLayout>
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_sheet_fragment, container, false)

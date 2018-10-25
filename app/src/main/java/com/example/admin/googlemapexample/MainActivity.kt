@@ -25,9 +25,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
-    private lateinit var requestInterface: BikeApi
     private val compositeDisposable = CompositeDisposable()
-    private var bottomSheetFragment = BottomSheetFragment()
     private var mFusedLocationClient: FusedLocationProviderClient? = null
     private var lastLocation: LatLng? = null
 
@@ -56,14 +54,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         sharedPreferences?.edit()?.putString(MY_LAST_LOCATION, "")?.apply()
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        requestInterface = ApiFactory(this).apiService
+
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         supportFragmentManager
                 .beginTransaction()
-                .replace(R.id.bottom_sheet_fragment_container, bottomSheetFragment)
+                .replace(R.id.bottom_sheet_fragment_container, BottomSheetFragment())
                 .commit()
 
         requestStations(SHOW_ALL)
@@ -179,7 +177,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         getLastLocation()
         map.setOnMarkerClickListener { p0 ->
             fillOutTheForm(bikeStations?.second?.firstOrNull { it.name == p0.title })
-            bottomSheetFragment.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            BottomSheetFragment.behavior.state = BottomSheetBehavior.STATE_EXPANDED
             false
         }
     }

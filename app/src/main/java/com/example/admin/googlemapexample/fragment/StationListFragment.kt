@@ -24,6 +24,10 @@ import com.google.android.gms.maps.model.LatLng
 
 class StationListFragment : Fragment() {
 
+    private val viewModel: StationListViewModel by lazy {
+        ViewModelProviders.of(activity!!).get(StationListViewModel::class.java)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.station_recycler_view, container, false)
     }
@@ -38,20 +42,17 @@ class StationListFragment : Fragment() {
         val adapter = StationRecyclerAdapter()
         recyclerView.adapter = adapter
 
-        val stations = MainActivity.bikeStations?.second
-        val totalStations = stations?.size.toString()
-        val totalBikes = stations?.sumBy{it.free_bikes?.toInt() ?: 0}.toString()
-        val totalSlots = stations?.sumBy{it.empty_slots?.toInt() ?: 0}.toString()
+        val stations = viewModel.items ?: listOf()
+        val totalStations = stations.size.toString()
+        val totalBikes = stations.sumBy{it.free_bikes?.toInt() ?: 0}.toString()
+        val totalSlots = stations.sumBy{it.empty_slots?.toInt() ?: 0}.toString()
         totalStationsText.text = totalStations
         totalBikesText.text = totalBikes
         totalSlotsText.text = totalSlots
 
-        val viewModel: StationListViewModel by lazy {
-            ViewModelProviders.of(activity!!).get(StationListViewModel::class.java)
-        }
 
-        viewModel.items?.forEach { it.distanceToMe = calculateDistance(it) }
-        viewModel.items?.let { adapter.setItems(it.sortedBy { it.distanceToMe }) }
+        stations.forEach { it.distanceToMe = calculateDistance(it) }
+        stations.let { adapter.setItems(it.sortedBy { it.distanceToMe }) }
 
         adapter.setOnRecyclerClicked(object : StationRecyclerAdapter.OnRecyclerClicked {
             override fun onClick(station: Station) {

@@ -3,7 +3,6 @@ package com.example.admin.googlemapexample
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import com.example.admin.googlemapexample.db.AppDatabase
-import com.example.admin.googlemapexample.extensions.makeToast
 import com.example.admin.googlemapexample.model.BikeResponse
 import com.example.admin.googlemapexample.model.Station
 import io.reactivex.Maybe
@@ -27,8 +26,6 @@ class StationListViewModel(application: Application) : AndroidViewModel(applicat
                     ?.subscribeOn(Schedulers.io())
                     ?.observeOn(AndroidSchedulers.mainThread())
 
-    fun stationsInsertion(bikeStations: List<Station>?){
-        stationsDao?.insertAllStations(bikeStations)
-    }
+    fun stationsInsertion(bikeStations: List<Station>?) = stationsDao?.insertAllStations(bikeStations)
 
 }
