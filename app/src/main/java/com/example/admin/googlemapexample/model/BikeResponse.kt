@@ -1,8 +1,8 @@
 package com.example.admin.googlemapexample.model
 
-class BikeResponse {
-    var network: Network? = null
-
+data class BikeResponse(
+        val network: Network
+) {
     override fun toString(): String {
         return "ClassPojo [network = $network]"
     }

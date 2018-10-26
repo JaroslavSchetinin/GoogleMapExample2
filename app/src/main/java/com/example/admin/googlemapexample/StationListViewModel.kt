@@ -13,13 +13,13 @@ class StationListViewModel(application: Application) : AndroidViewModel(applicat
 
     var items: List<Station>? = mutableListOf()
     private var requestInterface = ApiFactory(application).apiService
-    var stationsDao = AppDatabase.getInstance(application)?.stationDao()
+    private var stationsDao = AppDatabase.getInstance(application)?.stationDao()
 
 
     fun getStationsFromWeb(): Maybe<BikeResponse> = requestInterface.getStations()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnSuccess { items = it.network?.stations?.toList() }
+            .doOnSuccess { items = it.network.stations.toList() }
 
     fun getStationsFromDatabase(): Maybe<List<Station>>? =
             stationsDao?.getAllStations()
