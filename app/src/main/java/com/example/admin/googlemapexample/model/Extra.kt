@@ -1,14 +1,19 @@
 package com.example.admin.googlemapexample.model
 
-data class Extra(
-        val NearbyStationList: List<Int>,
-        val address: String,
-        val districtCode: String,
-        val status: String,
-        val uid: Int,
-        val zip: String
-) {
+class Extra {
+    var uid: String? = null
+
+    var zip: String? = null
+
+    var districtCode: String? = null
+
+    var status: String? = null
+
+    var address: String? = null
+
+    var nearbyStationList: Array<String>? = null
+
     override fun toString(): String {
-        return "ClassPojo [uid = $uid, zip = $zip, districtCode = $districtCode, status = $status, address = $address, NearbyStationList = $NearbyStationList]"
+        return "ClassPojo [uid = $uid, zip = $zip, districtCode = $districtCode, status = $status, address = $address, NearbyStationList = $nearbyStationList]"
     }
 }

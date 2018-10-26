@@ -231,7 +231,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun requestStations(type: Int) {
         compositeDisposable.add(viewModel.getStationsFromWeb()
                 .doOnSuccess { response ->
-                    bikeStations = Calendar.getInstance().time.toTimestamp() to (response.network.stations.toList())
+                    bikeStations = Calendar.getInstance().time.toTimestamp() to (response.network?.stations?.toList()
+                            ?: listOf())
                     val bikesStationSecond = bikeStations?.second
                     doAsync { viewModel.stationsInsertion(bikesStationSecond) }
                     when (type) {
