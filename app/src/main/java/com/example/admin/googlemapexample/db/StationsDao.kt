@@ -4,11 +4,8 @@ import android.arch.persistence.room.Dao
 import android.arch.persistence.room.Delete
 import android.arch.persistence.room.Insert
 import android.arch.persistence.room.Query
-import android.os.Build.VERSION_CODES.O
 import com.example.admin.googlemapexample.model.Station
 import io.reactivex.Maybe
-import io.reactivex.Observable
-import java.util.*
 
 @Dao
 interface StationsDao {

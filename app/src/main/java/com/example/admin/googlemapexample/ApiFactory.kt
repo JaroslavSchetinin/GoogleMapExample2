@@ -29,14 +29,14 @@ class ApiFactory(private val context: Context) {
 
     private fun buildClient() = OkHttpClient.Builder()
             .apply {
-        connectTimeout(1, TimeUnit.MINUTES)
-        addInterceptor(ChuckInterceptor(context))
-        cache(Cache(context.cacheDir, TEN_MEGABYTES))
-        readTimeout(1, TimeUnit.MINUTES)
-        writeTimeout(1, TimeUnit.MINUTES)
-        if (BuildConfig.DEBUG) {
-            addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
-        }
-    }
+                connectTimeout(1, TimeUnit.MINUTES)
+                addInterceptor(ChuckInterceptor(context))
+                cache(Cache(context.cacheDir, TEN_MEGABYTES))
+                readTimeout(1, TimeUnit.MINUTES)
+                writeTimeout(1, TimeUnit.MINUTES)
+                if (BuildConfig.DEBUG) {
+                    addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
+                }
+            }
             .build()
 }
