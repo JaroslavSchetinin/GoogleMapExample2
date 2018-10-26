@@ -1,14 +1,11 @@
 package com.example.admin.googlemapexample.model
 
-class Location {
-    var longitude: String? = null
-
-    var latitude: String? = null
-
-    var country: String? = null
-
-    var city: String? = null
-
+data class Location(
+        val city: String,
+        val country: String,
+        val latitude: Double,
+        val longitude: Double
+) {
     override fun toString(): String {
         return "ClassPojo [longitude = $longitude, latitude = $latitude, country = $country, city = $city]"
     }
