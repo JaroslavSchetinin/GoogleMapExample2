@@ -12,10 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
-import com.example.admin.googlemapexample.MainActivity
-import com.example.admin.googlemapexample.R
-import com.example.admin.googlemapexample.StationListViewModel
-import com.example.admin.googlemapexample.StationRecyclerAdapter
+import com.example.admin.googlemapexample.*
 import com.example.admin.googlemapexample.extensions.getDistance
 import com.example.admin.googlemapexample.extensions.getLatLng
 import com.example.admin.googlemapexample.model.Station
@@ -42,23 +39,22 @@ class StationListFragment : Fragment() {
         val adapter = StationRecyclerAdapter()
         recyclerView.adapter = adapter
 
-        val stations = viewModel.items ?: listOf()
-        val totalStations = stations.size.toString()
-        val totalBikes = stations.sumBy{it.free_bikes?.toInt() ?: 0}.toString()
-        val totalSlots = stations.sumBy{it.empty_slots?.toInt() ?: 0}.toString()
+        val totalStations = viewModel.items.second.size.toString()
+        val totalBikes = viewModel.items.second.sumBy{it.free_bikes?.toInt() ?: 0}.toString()
+        val totalSlots = viewModel.items.second.sumBy{it.empty_slots?.toInt() ?: 0}.toString()
         totalStationsText.text = totalStations
         totalBikesText.text = totalBikes
         totalSlotsText.text = totalSlots
 
 
-        stations.forEach { it.distanceToMe = calculateDistance(it) }
-        stations.let { adapter.setItems(it.sortedBy { it.distanceToMe }) }
+        viewModel.items.second.forEach { it.distanceToMe = calculateDistance(it) }
+        viewModel.items.let { adapter.setItems(it.second.sortedBy { it.distanceToMe }) }
 
         adapter.setOnRecyclerClicked(object : StationRecyclerAdapter.OnRecyclerClicked {
             override fun onClick(station: Station) {
                 Toast.makeText(context, station.name, Toast.LENGTH_SHORT).show()
                 fragmentManager?.popBackStack()
-                MainActivity.map.animateCamera(CameraUpdateFactory.newLatLngZoom(station.latitude?.let { LatLng(it.toDouble(), station.longitude?.toDouble() ?: 0.0) }, 18f))  //?
+                MyMapFragment.map.animateCamera(CameraUpdateFactory.newLatLngZoom(station.latitude?.let { LatLng(it.toDouble(), station.longitude?.toDouble() ?: 0.0) }, 18f))  //?
             }
         })
     }
